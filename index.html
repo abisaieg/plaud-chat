@@ -42,7 +42,6 @@ const $ = (id) => document.getElementById(id);
 // La página es estática (GitHub Pages); la API vive en Supabase.
 const BASE = "https://rvzvsgiowecamuwvhevw.supabase.co/functions/v1/plaud-chat";
 let pin = localStorage.getItem("plaud_pin") || "";
-let mensajes = [];
 
 async function pedir(ruta, cuerpo) {
   const r = await fetch(BASE + ruta, { method:"POST", headers:{ "Content-Type":"application/json", "x-pin":pin }, body:JSON.stringify(cuerpo) });
@@ -58,6 +57,7 @@ async function entrar(valor) {
   const d = await r.json();
   $("cuantas").textContent = d.grabaciones + " grabaciones · " + d.horas + " h";
   $("pin").style.display = "none";
+  await pintarHistorial();
   return true;
 }
 
@@ -78,6 +78,16 @@ function comoHtml(t) {
     .replace(/\n/g, "<br>");
 }
 
+// Al abrir, la charla sigue donde quedó: el hilo vive en el servidor.
+async function pintarHistorial() {
+  try {
+    const r = await fetch(BASE + "/historial", { headers: { "x-pin": pin } });
+    if (!r.ok) return;
+    const { mensajes } = await r.json();
+    for (const m of mensajes) burbuja(m.content, m.role === "user" ? "yo" : "el");
+  } catch (e) { /* si falla, se arranca con el hilo vacío */ }
+}
+
 function burbuja(texto, quien) {
   const d = document.createElement("div");
   d.className = "msg " + quien;
@@ -95,9 +105,8 @@ $("form").addEventListener("submit", async (e) => {
   burbuja(texto, "yo");
   const esperando = burbuja("buscando en tus grabaciones…", "el pensando");
   try {
-    mensajes.push({ role:"user", content: texto });
-    const r = await pedir("/preguntar", { mensajes });
-    if (r) { mensajes = r.mensajes; esperando.className = "msg el"; esperando.innerHTML = comoHtml(r.texto); }
+    const r = await pedir("/preguntar", { texto });
+    if (r) { esperando.className = "msg el"; esperando.innerHTML = comoHtml(r.texto); }
   } catch (err) {
     esperando.className = "msg el"; esperando.textContent = "Se me cayó algo: " + err.message;
   }
