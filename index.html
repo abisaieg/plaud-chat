@@ -86,7 +86,7 @@
   .chat-item small, .grab-item small { display:block; color:var(--tenue); font-size:12px; margin-top:3px; }
   .chat-item .equis { float:right; color:var(--tenue); padding:0 4px; }
   #nuevo { margin:12px 16px 4px; padding:11px; border-radius:12px; background:var(--acento); color:#fff; border:0; font:inherit; font-weight:600; }
-  .grab-item b { font-weight:600; }
+  .grab-item b { font-weight:600; display:block; line-height:1.4; }
   .grab-item .badge { color:var(--acento); font-size:12px; }
   .grab-item .sumario { color:var(--tenue); font-size:13px; margin-top:4px; line-height:1.45; }
   header .hamb { background:none; border:0; color:var(--texto); font-size:21px; padding:0; margin:0 4px 0 0; line-height:1; align-self:center; }
@@ -296,15 +296,19 @@ async function pintarGrabaciones() {
   for (const g of d.grabaciones) {
     const b = document.createElement("button");
     b.className = "grab-item";
-    const titulo = (g.nombre && !/^\d{4}-\d{2}-\d{2}/.test(g.nombre)) ? g.nombre : "Sin título";
+    // Plaud casi nunca les pone nombre: si no hay, la primera línea del
+    // resumen dice mucho más que un "Sin título".
+    const propio = g.nombre && !/^\d{4}-\d{2}-\d{2}/.test(g.nombre) ? g.nombre : "";
     const resumen = (g.resumen || "").split("\n").filter(Boolean)[0] || "";
+    const titulo = propio || resumen || "Sin título";
+    const bajada = propio ? resumen : "";
     b.innerHTML = `<b>${titulo}</b>` +
       `<small>${g.cuando} · ${g.minutos} min` +
       (g.avance ? ` · <span class="badge">${g.avance}</span>` : "") + `</small>` +
-      (resumen ? `<div class="sumario">${resumen}</div>` : "");
+      (bajada ? `<div class="sumario">${bajada}</div>` : "");
     b.addEventListener("click", () => {
       abrirMenu(false);
-      $("entrada").value = `Contame de la grabación del ${g.cuando}`;
+      $("entrada").value = `Contame de la grabación del ${g.cuando}` + (propio ? `, "${propio}"` : "");
       $("form").requestSubmit();
     });
     cont.appendChild(b);
