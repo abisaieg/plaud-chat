@@ -1,76 +1,176 @@
 <!doctype html>
 <html lang="es"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
+<meta name="theme-color" content="#0f1012">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Grabaciones">
+<meta name="robots" content="noindex,nofollow">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icono.png">
 <title>Mis grabaciones</title>
 <style>
-  :root { color-scheme: dark; --fondo:#0f1012; --panel:#17191d; --borde:#26292f; --texto:#e9eaec; --tenue:#8b9099; --acento:#5b8cff; }
-  * { box-sizing:border-box; -webkit-text-size-adjust:100%; }
-  body { margin:0; background:var(--fondo); color:var(--texto); font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-         display:flex; flex-direction:column; height:100dvh; padding-top:env(safe-area-inset-top,0); }
-  header { padding:14px 18px; border-bottom:1px solid var(--borde); display:flex; align-items:baseline; gap:10px; }
+  :root {
+    color-scheme: dark;
+    --fondo:#0f1012; --panel:#17191d; --borde:#26292f; --texto:#e9eaec; --tenue:#8b9099; --acento:#5b8cff;
+    --arriba: env(safe-area-inset-top, 0px);
+    --abajo: env(safe-area-inset-bottom, 0px);
+  }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { overscroll-behavior-y:none; }
+  body {
+    margin:0; background:var(--fondo); color:var(--texto);
+    font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    display:flex; flex-direction:column; height:100dvh; -webkit-text-size-adjust:100%;
+  }
+  header {
+    padding:calc(12px + var(--arriba)) 18px 12px; border-bottom:1px solid var(--borde);
+    display:flex; align-items:baseline; gap:10px; flex:0 0 auto;
+  }
   header h1 { font-size:16px; margin:0; font-weight:600; letter-spacing:-.01em; }
   header span { font-size:13px; color:var(--tenue); }
-  #hilo { flex:1; overflow-y:auto; padding:18px; display:flex; flex-direction:column; gap:14px; }
+  header button { margin-left:auto; background:none; border:0; color:var(--tenue); font-size:13px; padding:4px 0; }
+
+  #hilo { flex:1 1 auto; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:16px; display:flex; flex-direction:column; gap:12px; }
+  .msg { max-width:min(680px,90%); padding:11px 14px; border-radius:16px; word-wrap:break-word; overflow-wrap:anywhere; }
+  .yo { align-self:flex-end; background:var(--acento); color:#fff; border-bottom-right-radius:5px; }
+  .el { align-self:flex-start; background:var(--panel); border:1px solid var(--borde); border-bottom-left-radius:5px; }
   .msg b { font-weight:600; }
   .msg code { background:#0b0c0e; padding:1px 5px; border-radius:5px; font-size:.92em; }
-  .msg { max-width:min(680px,92%); padding:12px 15px; border-radius:14px; white-space:pre-wrap; word-wrap:break-word; }
-  .yo { align-self:flex-end; background:var(--acento); color:#fff; border-bottom-right-radius:4px; }
-  .el { align-self:flex-start; background:var(--panel); border:1px solid var(--borde); border-bottom-left-radius:4px; }
   .pensando { color:var(--tenue); font-style:italic; }
-  form { display:flex; gap:10px; padding:12px 14px calc(12px + env(safe-area-inset-bottom,0)); border-top:1px solid var(--borde); background:var(--fondo); }
-  input,textarea { font:inherit; color:var(--texto); background:var(--panel); border:1px solid var(--borde); border-radius:12px; padding:11px 14px; width:100%; resize:none; }
-  input:focus,textarea:focus { outline:none; border-color:var(--acento); }
-  button { font:inherit; font-weight:600; background:var(--acento); color:#fff; border:0; border-radius:12px; padding:0 18px; cursor:pointer; }
-  button:disabled { opacity:.45; cursor:default; }
-  #pin { position:fixed; inset:0; background:var(--fondo); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:24px; }
-  #pin input { width:180px; text-align:center; font-size:26px; letter-spacing:.35em; }
-  .aviso { color:#ff8080; font-size:14px; min-height:20px; }
-  .vacio { color:var(--tenue); text-align:center; margin:auto; padding:0 24px; max-width:420px; }
-</style></head><body>
-<div id="pin"><div style="font-size:15px;color:var(--tenue)">Mis grabaciones</div>
-  <input id="clave" type="tel" inputmode="numeric" maxlength="6" autofocus>
-  <div class="aviso" id="avisoPin"></div></div>
+  .vacio { color:var(--tenue); text-align:center; margin:auto; padding:0 20px; max-width:420px; font-size:15px; }
+  .vacio i { display:block; margin-top:14px; font-style:normal; font-size:14px; line-height:2; }
 
-<header><h1>Mis grabaciones</h1><span id="cuantas"></span></header>
-<div id="hilo"><div class="vacio">Preguntame lo que quieras sobre tus grabaciones.<br><br>
-  «¿Qué quedó pendiente con OCA?» · «¿Qué dije sobre precios de mayoristas?» · «Resumime la reunión de marca»</div></div>
-<form id="form"><textarea id="entrada" rows="1" placeholder="Preguntá algo…" autocomplete="off"></textarea>
-  <button id="enviar">Ir</button></form>
+  /* Escuchar el momento citado, sin salir del chat */
+  .oir {
+    display:inline-flex; align-items:center; gap:7px; margin:6px 6px 0 0; padding:7px 13px;
+    background:#0b0c0e; border:1px solid var(--borde); border-radius:999px;
+    color:var(--acento); font-size:14px; font-weight:500; cursor:pointer; min-height:38px;
+  }
+  .oir:active { background:#1d2027; }
+  audio { width:100%; margin-top:8px; }
+
+  form {
+    display:flex; gap:9px; align-items:flex-end; flex:0 0 auto;
+    padding:10px 12px calc(10px + var(--abajo)); border-top:1px solid var(--borde); background:var(--fondo);
+  }
+  textarea {
+    font:inherit; font-size:16px; color:var(--texto); background:var(--panel);
+    border:1px solid var(--borde); border-radius:20px; padding:10px 15px; width:100%;
+    resize:none; max-height:130px; line-height:1.4;
+  }
+  textarea:focus { outline:none; border-color:var(--acento); }
+  button.ir {
+    font:inherit; font-weight:600; background:var(--acento); color:#fff; border:0;
+    border-radius:50%; width:44px; height:44px; flex:0 0 auto; font-size:18px;
+  }
+  button.ir:disabled { opacity:.4; }
+
+  #puerta {
+    position:fixed; inset:0; background:var(--fondo); z-index:10;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; padding:24px;
+  }
+  #puerta input {
+    width:190px; text-align:center; font-size:28px; letter-spacing:.3em; font-family:inherit;
+    color:var(--texto); background:var(--panel); border:1px solid var(--borde); border-radius:14px; padding:12px;
+  }
+  #puerta input:focus { outline:none; border-color:var(--acento); }
+  .aviso { color:#ff8b8b; font-size:14px; min-height:20px; text-align:center; max-width:260px; }
+</style></head><body>
+
+<div id="puerta">
+  <div style="font-size:15px;color:var(--tenue)">Mis grabaciones</div>
+  <input id="clave" type="password" inputmode="numeric" autocomplete="off" maxlength="12" enterkeyhint="go">
+  <div class="aviso" id="avisoPuerta"></div>
+</div>
+
+<header>
+  <h1>Mis grabaciones</h1><span id="cuantas"></span>
+  <button id="salir" hidden>salir</button>
+</header>
+
+<div id="hilo">
+  <div class="vacio">Preguntame lo que quieras sobre tus grabaciones.
+    <i>«¿Qué quedó pendiente con Uri?» · «¿Qué dije de los cheques?» · «Repasame la reunión de ayer»</i>
+  </div>
+</div>
+
+<form id="form">
+  <textarea id="entrada" rows="1" placeholder="Preguntá algo…" enterkeyhint="send"></textarea>
+  <button class="ir" id="enviar" aria-label="Enviar">↑</button>
+</form>
 
 <script>
 const $ = (id) => document.getElementById(id);
-// La página es estática (GitHub Pages); la API vive en Supabase.
 const BASE = "https://rvzvsgiowecamuwvhevw.supabase.co/functions/v1/plaud-chat";
-let pin = localStorage.getItem("plaud_pin") || "";
+// El PIN no se guarda en ningún lado: se cambia por un pase firmado que vence.
+let pase = localStorage.getItem("plaud_pase") || "";
 
-async function pedir(ruta, cuerpo) {
-  const r = await fetch(BASE + ruta, { method:"POST", headers:{ "Content-Type":"application/json", "x-pin":pin }, body:JSON.stringify(cuerpo) });
-  if (r.status === 401) { localStorage.removeItem("plaud_pin"); location.reload(); return null; }
-  if (!r.ok) throw new Error(await r.text());
+async function api(ruta, opciones = {}) {
+  const r = await fetch(BASE + ruta, {
+    ...opciones,
+    headers: { "Content-Type": "application/json", "x-pase": pase, ...(opciones.headers || {}) },
+  });
+  if (r.status === 401) { salir(); return null; }
+  if (!r.ok) throw new Error(((await r.json().catch(() => ({}))).error) || ("error " + r.status));
   return await r.json();
 }
 
-async function entrar(valor) {
-  const r = await fetch(BASE + "/estado", { headers:{ "x-pin":valor } });
-  if (!r.ok) { $("avisoPin").textContent = "PIN incorrecto"; return false; }
-  pin = valor; localStorage.setItem("plaud_pin", valor);
-  const d = await r.json();
-  $("cuantas").textContent = d.grabaciones + " grabaciones · " + d.horas + " h";
-  $("pin").style.display = "none";
-  await pintarHistorial();
-  return true;
+function salir() {
+  localStorage.removeItem("plaud_pase");
+  pase = "";
+  $("puerta").style.display = "flex";
+  $("clave").value = "";
+  $("hilo").innerHTML = "";
+  $("clave").focus();
+}
+$("salir").addEventListener("click", salir);
+
+async function entrar(pin) {
+  $("avisoPuerta").textContent = "";
+  const r = await fetch(BASE + "/entrar", {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ pin }),
+  });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) { $("avisoPuerta").textContent = d.error || "No pude entrar"; return false; }
+  pase = d.pase;
+  localStorage.setItem("plaud_pase", pase);
+  return await abrir();
 }
 
-$("clave").addEventListener("input", async (e) => {
-  const v = e.target.value.trim();
-  if (v.length >= 4) { if (!(await entrar(v))) e.target.value = ""; }
-});
+async function abrir() {
+  try {
+    const d = await api("/estado");
+    if (!d) return false;
+    $("cuantas").textContent = d.grabaciones + " grabaciones · " + d.horas + " h";
+    $("puerta").style.display = "none";
+    $("salir").hidden = false;
+    await pintarHistorial();
+    return true;
+  } catch { return false; }
+}
 
-// Claude contesta en markdown: negritas, viñetas y títulos. Sin esto se ven
-// los asteriscos crudos en pantalla.
+$("clave").addEventListener("keydown", (e) => { if (e.key === "Enter") probar(); });
+$("clave").addEventListener("input", (e) => { if (e.target.value.trim().length >= 4) probar(); });
+let probando = false;
+async function probar() {
+  const v = $("clave").value.trim();
+  if (probando || v.length < 4) return;
+  probando = true;
+  if (!(await entrar(v))) $("clave").value = "";
+  probando = false;
+}
+
+// Claude contesta en markdown y marca los momentos escuchables como [audio:id@mm:ss].
 function comoHtml(t) {
   const esc = t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   return esc
+    .replace(/\[audio:([\w]+)@(\d+):(\d+)(?::(\d+))?\]/g, (_m, id, a, b, c) => {
+      const seg = c ? (+a * 3600 + +b * 60 + +c) : (+a * 60 + +b);
+      const reloj = c ? `${a}:${b}:${c}` : `${a}:${b}`;
+      return `<button class="oir" data-id="${id}" data-seg="${seg}">▶ escuchar ${reloj}</button>`;
+    })
     .replace(/\*\*(.+?)\*\*/g, "<b>$1</b>")
     .replace(/(^|\n)#{1,6}\s*(.+)/g, "$1<b>$2</b>")
     .replace(/`([^`]+)`/g, "<code>$1</code>")
@@ -78,14 +178,38 @@ function comoHtml(t) {
     .replace(/\n/g, "<br>");
 }
 
-// Al abrir, la charla sigue donde quedó: el hilo vive en el servidor.
+// Un solo reproductor a la vez: el audio se pide recién cuando lo tocás.
+$("hilo").addEventListener("click", async (e) => {
+  const boton = e.target.closest(".oir");
+  if (!boton) return;
+  const previo = boton.parentElement.querySelector("audio");
+  if (previo) previo.remove();
+  boton.disabled = true;
+  const original = boton.textContent;
+  boton.textContent = "⏳ buscando el audio…";
+  try {
+    const d = await api("/audio?id=" + encodeURIComponent(boton.dataset.id));
+    if (!d) return;
+    const a = document.createElement("audio");
+    a.controls = true;
+    a.preload = "none";
+    a.src = d.url + "#t=" + boton.dataset.seg;
+    boton.parentElement.insertBefore(a, boton.nextSibling);
+    a.currentTime = Number(boton.dataset.seg);
+    a.play().catch(() => {});
+    boton.textContent = original;
+  } catch (err) {
+    boton.textContent = "no pude traer el audio";
+  }
+  boton.disabled = false;
+});
+
 async function pintarHistorial() {
   try {
-    const r = await fetch(BASE + "/historial", { headers: { "x-pin": pin } });
-    if (!r.ok) return;
-    const { mensajes } = await r.json();
-    for (const m of mensajes) burbuja(m.content, m.role === "user" ? "yo" : "el");
-  } catch (e) { /* si falla, se arranca con el hilo vacío */ }
+    const d = await api("/historial");
+    if (!d) return;
+    for (const m of d.mensajes) burbuja(m.content, m.role === "user" ? "yo" : "el");
+  } catch { /* si falla, se arranca con el hilo vacío */ }
 }
 
 function burbuja(texto, quien) {
@@ -94,7 +218,8 @@ function burbuja(texto, quien) {
   if (quien === "yo" || quien.includes("pensando")) d.textContent = texto;
   else d.innerHTML = comoHtml(texto);
   const vacio = document.querySelector(".vacio"); if (vacio) vacio.remove();
-  $("hilo").appendChild(d); $("hilo").scrollTop = $("hilo").scrollHeight;
+  $("hilo").appendChild(d);
+  $("hilo").scrollTop = $("hilo").scrollHeight;
   return d;
 }
 
@@ -105,20 +230,29 @@ $("form").addEventListener("submit", async (e) => {
   burbuja(texto, "yo");
   const esperando = burbuja("buscando en tus grabaciones…", "el pensando");
   try {
-    const r = await pedir("/preguntar", { texto });
+    const r = await api("/preguntar", { method: "POST", body: JSON.stringify({ texto }) });
     if (r) { esperando.className = "msg el"; esperando.innerHTML = comoHtml(r.texto); }
   } catch (err) {
     esperando.className = "msg el"; esperando.textContent = "Se me cayó algo: " + err.message;
   }
-  $("enviar").disabled = false; $("entrada").focus();
+  $("enviar").disabled = false;
+  $("hilo").scrollTop = $("hilo").scrollHeight;
 });
 
 $("entrada").addEventListener("keydown", (e) => {
-  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); $("form").requestSubmit(); }
+  // En el celular el Enter es para escribir; en la compu, para mandar.
+  if (e.key === "Enter" && !e.shiftKey && !matchMedia("(pointer: coarse)").matches) {
+    e.preventDefault(); $("form").requestSubmit();
+  }
 });
 $("entrada").addEventListener("input", (e) => {
-  e.target.style.height = "auto"; e.target.style.height = Math.min(e.target.scrollHeight, 140) + "px";
+  e.target.style.height = "auto";
+  e.target.style.height = Math.min(e.target.scrollHeight, 130) + "px";
 });
+// Con el teclado abierto, iOS achica la ventana: que el hilo siga a la vista.
+if (window.visualViewport) {
+  visualViewport.addEventListener("resize", () => { $("hilo").scrollTop = $("hilo").scrollHeight; });
+}
 
-if (pin) entrar(pin); else $("clave").focus();
+if (pase) abrir().then((ok) => { if (!ok) salir(); }); else $("clave").focus();
 </script></body></html>
