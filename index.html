@@ -11,6 +11,8 @@
   header h1 { font-size:16px; margin:0; font-weight:600; letter-spacing:-.01em; }
   header span { font-size:13px; color:var(--tenue); }
   #hilo { flex:1; overflow-y:auto; padding:18px; display:flex; flex-direction:column; gap:14px; }
+  .msg b { font-weight:600; }
+  .msg code { background:#0b0c0e; padding:1px 5px; border-radius:5px; font-size:.92em; }
   .msg { max-width:min(680px,92%); padding:12px 15px; border-radius:14px; white-space:pre-wrap; word-wrap:break-word; }
   .yo { align-self:flex-end; background:var(--acento); color:#fff; border-bottom-right-radius:4px; }
   .el { align-self:flex-start; background:var(--panel); border:1px solid var(--borde); border-bottom-left-radius:4px; }
@@ -64,10 +66,23 @@ $("clave").addEventListener("input", async (e) => {
   if (v.length >= 4) { if (!(await entrar(v))) e.target.value = ""; }
 });
 
+// Claude contesta en markdown: negritas, viñetas y títulos. Sin esto se ven
+// los asteriscos crudos en pantalla.
+function comoHtml(t) {
+  const esc = t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return esc
+    .replace(/\*\*(.+?)\*\*/g, "<b>$1</b>")
+    .replace(/(^|\n)#{1,6}\s*(.+)/g, "$1<b>$2</b>")
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/(^|\n)[-*]\s+/g, "$1• ")
+    .replace(/\n/g, "<br>");
+}
+
 function burbuja(texto, quien) {
   const d = document.createElement("div");
   d.className = "msg " + quien;
-  d.textContent = texto;
+  if (quien === "yo" || quien.includes("pensando")) d.textContent = texto;
+  else d.innerHTML = comoHtml(texto);
   const vacio = document.querySelector(".vacio"); if (vacio) vacio.remove();
   $("hilo").appendChild(d); $("hilo").scrollTop = $("hilo").scrollHeight;
   return d;
@@ -82,7 +97,7 @@ $("form").addEventListener("submit", async (e) => {
   try {
     mensajes.push({ role:"user", content: texto });
     const r = await pedir("/preguntar", { mensajes });
-    if (r) { mensajes = r.mensajes; esperando.className = "msg el"; esperando.textContent = r.texto; }
+    if (r) { mensajes = r.mensajes; esperando.className = "msg el"; esperando.innerHTML = comoHtml(r.texto); }
   } catch (err) {
     esperando.className = "msg el"; esperando.textContent = "Se me cayó algo: " + err.message;
   }
