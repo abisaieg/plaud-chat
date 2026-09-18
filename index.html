@@ -26,11 +26,11 @@
   }
   header {
     padding:calc(12px + var(--arriba)) 18px 12px; border-bottom:1px solid var(--borde);
-    display:flex; align-items:baseline; gap:10px; flex:0 0 auto;
+    display:flex; align-items:center; gap:9px; flex:0 0 auto;
   }
-  header h1 { font-size:16px; margin:0; font-weight:600; letter-spacing:-.01em; }
+  header h1 { font-size:16px; margin:0; font-weight:600; letter-spacing:-.01em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:52vw; }
   header span { font-size:13px; color:var(--tenue); }
-  header button { margin-left:auto; background:none; border:0; color:var(--tenue); font-size:13px; padding:4px 0; }
+  header #salir { margin-left:auto; background:none; border:0; color:var(--tenue); font-size:13px; padding:4px 0; }
 
   #hilo { flex:1 1 auto; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:16px; display:flex; flex-direction:column; gap:12px; }
   .msg { max-width:min(680px,90%); padding:11px 14px; border-radius:16px; word-wrap:break-word; overflow-wrap:anywhere; }
@@ -89,7 +89,7 @@
   .grab-item b { font-weight:600; }
   .grab-item .badge { color:var(--acento); font-size:12px; }
   .grab-item .sumario { color:var(--tenue); font-size:13px; margin-top:4px; line-height:1.45; }
-  header .hamb { background:none; border:0; color:var(--texto); font-size:20px; padding:0 6px 0 0; margin-right:2px; line-height:1; }
+  header .hamb { background:none; border:0; color:var(--texto); font-size:21px; padding:0; margin:0 4px 0 0; line-height:1; align-self:center; }
 
   #puerta {
     position:fixed; inset:0; background:var(--fondo); z-index:10;
